@@ -1,0 +1,22 @@
+{
+  "name": "@dice-protocol/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for Dice Protocol — trustless RNG on Robinhood Chain",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/test/ || true",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["dice", "randomness", "oracle", "rng", "robinhood-chain", "blockchain"],
+  "license": "MIT",
+  "author": "Babylon Agent",
+  "dependencies": {
+    "ethers": "^6.13.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/node": "^20.0.0"
+  }
+}
