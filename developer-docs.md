@@ -1,6 +1,6 @@
 # Dice Protocol — Developer Documentation
 
-> **Contract:** [`0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F`](https://robinhoodchain.blockscout.com/address/0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F)
+> **Contract:** [`0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0`](https://robinhoodchain.blockscout.com/address/0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0)
 > **Chain:** Robinhood Chain Mainnet (Chain ID: 4663)
 > **Fee:** 0.000055 ETH per request
 > **Solidity:** ^0.8.24
@@ -27,7 +27,7 @@
 
 ## 1. Overview
 
-Dice Protocol is a trustless commit-reveal randomness oracle deployed on Robinhood Chain. It delivers provably fair, on-chain verifiable random numbers through a two-party commit-reveal scheme — no single party can bias the outcome.
+Dice Protocol is a trustless commit-reveal randomness oracle deployed on Robinhood Chain. It delivers provably fair, onchain verifiable random numbers through a two-party commit-reveal scheme — no single party can bias the outcome.
 
 **Key properties:**
 
@@ -53,14 +53,14 @@ Dice Protocol is a trustless commit-reveal randomness oracle deployed on Robinho
 └──────────┘                      └──────────┘                  └─────────────┘
 ```
 
-1. **User commits** — The requester generates a 32-byte random number (`userRandom`) and submits only its hash (`keccak256(userRandom)`) on-chain via `requestV2()`. The raw value stays secret.
+1. **User commits** — The requester generates a 32-byte random number (`userRandom`) and submits only its hash (`keccak256(userRandom)`) onchain via `requestV2()`. The raw value stays secret.
 2. **Provider reveals** — The provider holds a pre-committed hash chain. Upon seeing the `Requested` event, it submits the next chain value (`providerRevelation`) via `revealWithCallback()`. The contract verifies this value hashes back to the provider's published commitment.
 3. **Random number derived** — `randomNumber = keccak256(userRandom, providerContribution, blockHash)`. Since V2 always sets `useBlockhash = false`, the formula is effectively `keccak256(userRandom, providerContribution, 0)`.
 4. **Callback** — The contract calls `entropyCallback(sequence, provider, randomNumber)` on the requesting contract. If the callback reverts or runs out of gas, the reveal still succeeds and the failure is recorded in the `Revealed` event.
 
 ### Hash Chain
 
-The provider pre-commits a chain of values: `x₀ → x₁ → ... → xₙ`, where `xᵢ = keccak256(xᵢ₊₁)`. Only `x₀` (the commitment root) is published on-chain at registration. Each request consumes one value from the chain. This means:
+The provider pre-commits a chain of values: `x₀ → x₁ → ... → xₙ`, where `xᵢ = keccak256(xᵢ₊₁)`. Only `x₀` (the commitment root) is published onchain at registration. Each request consumes one value from the chain. This means:
 
 - **Past reveals are verifiable** — any revealed value hashes back to the commitment.
 - **Future reveals are unpredictable** — without knowing `xᵢ₊₁`, you cannot derive it from `xᵢ`.
@@ -269,7 +269,7 @@ When a user calls `requestV2()`, they pass a `userRandomNumber` (32 bytes). The 
 userCommitment = keccak256(userRandomNumber)
 ```
 
-This hash is stored on-chain. The raw `userRandomNumber` is kept secret by the user and revealed later during `revealWithCallback()`.
+This hash is stored onchain. The raw `userRandomNumber` is kept secret by the user and revealed later during `revealWithCallback()`.
 
 ### Provider Commitment
 
@@ -453,7 +453,7 @@ function advanceProviderCommitment(
 ) public
 ```
 
-Advances the provider's on-chain commitment to reduce `numHashes` for future requests. This is a gas optimization — without advancement, older requests require more hash iterations to verify. The caller provides a revelation value that, when hashed `numHashes` times, must equal the current commitment.
+Advances the provider's onchain commitment to reduce `numHashes` for future requests. This is a gas optimization — without advancement, older requests require more hash iterations to verify. The caller provides a revelation value that, when hashed `numHashes` times, must equal the current commitment.
 
 **Reverts:** `UpdateTooOld`, `AssertionFailure`, `IncorrectRevelation`
 
@@ -976,7 +976,7 @@ import { DiceProtocol, ethers } from '@dice-protocol/sdk';
 // Initialize
 const dice = new DiceProtocol({
   rpcUrl: 'https://rpc.mainnet.chain.robinhood.com',
-  contractAddress: '0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F',
+  contractAddress: '0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0',
 });
 
 // Load wallet
@@ -1021,7 +1021,7 @@ If you're running a provider (keeper) service, you need to:
 const seed = '0x' + crypto.randomBytes(32).toString('hex');
 const chain = DiceProtocol.generateHashChain(seed, 50_000);
 
-// Register (admin only — uses registerFor on-chain)
+// Register (admin only — uses registerFor onchain)
 // commitment = chain.commitment (x₀)
 // revelations[0] = x₁ (first reveal), revelations[1] = x₂, ...
 ```
@@ -1091,7 +1091,7 @@ Dice Protocol uses a **single flat fee model**:
 ### Checking the Fee
 
 ```solidity
-// On-chain
+// Onchain
 uint128 fee = dice.getFee(provider);
 // or
 uint128 fee = dice.getFeeV2(provider, gasLimit);
@@ -1172,7 +1172,7 @@ Maximum gas limit: **655,350,000** (`uint16.max × 10,000`). Exceeding this reve
 
 Without `advanceProviderCommitment()`, each reveal must hash the provider's revelation `numHashes` times. As the provider's current commitment falls further behind the request sequence, `numHashes` grows, increasing gas cost per reveal.
 
-Call `advanceProviderCommitment()` periodically to move the on-chain commitment forward, resetting `numHashes` for subsequent requests. This is especially important for high-throughput use cases.
+Call `advanceProviderCommitment()` periodically to move the onchain commitment forward, resetting `numHashes` for subsequent requests. This is especially important for high-throughput use cases.
 
 ### Storage Slot Pre-fill
 
@@ -1332,7 +1332,7 @@ The contract is deployed and verified on Robinhood Chain Mainnet:
 
 | Property | Value |
 |----------|-------|
-| Contract Address | `0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F` |
+| Contract Address | `0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0` |
 | Chain ID | 4663 |
 | RPC URL | `https://rpc.mainnet.chain.robinhood.com` |
 | Explorer | `https://robinhoodchain.blockscout.com` |
@@ -1343,7 +1343,7 @@ The contract is deployed and verified on Robinhood Chain Mainnet:
 | Admin | `0x4ACD2C88a239a924E47Fc4995114ca1Bb0CA3CaD` |
 | Default Provider | `0x8741b8a825644D9Ef18Faf2DAB5e9b47B900F2b6` |
 | Hash Chain Length | 50,000 values |
-| Default Gas Limit | 100,000 |
+| Default Gas Limit | 200,000 |
 
 ### Deploying a New Instance
 
@@ -1441,7 +1441,7 @@ The keeper monitors `Requested` events, looks up the corresponding hash chain va
 
 ```env
 # Contract
-DICE_ENTROPY_ADDRESS=0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F
+DICE_ENTROPY_ADDRESS=0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0
 RH_CHAIN_RPC_MAINNET=https://rpc.mainnet.chain.robinhood.com
 RH_CHAIN_WS_MAINNET=wss://ws.mainnet.chain.robinhood.com
 RH_CHAIN_CHAIN_ID=4663
@@ -1463,8 +1463,8 @@ DICE_VAULT_ADDRESS=0x918EAF0b2589710B0D85ef48C12a343E68263841
 
 | Chain | Chain ID | Contract Address | Status |
 |-------|----------|-----------------|--------|
-| Robinhood Chain Mainnet | 4663 | `0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F` | ✅ Live |
-| Robinhood Chain Testnet | 46630 | `0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F` | ✅ Live |
+| Robinhood Chain Mainnet | 4663 | `0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0` | ✅ Live |
+| Robinhood Chain Testnet | 46630 | `0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0` | ✅ Live |
 
 ### Import Paths (Solidity)
 
@@ -1498,11 +1498,11 @@ import {
 ### Common Workflows Cheat Sheet
 
 ```
-Request randomness (on-chain):
+Request randomness (onchain):
   fee = dice.getFee(provider)
   seq = dice.requestV2{value: fee}(provider, userRandom, gasLimit)
 
-Receive randomness (on-chain callback):
+Receive randomness (onchain callback):
   function entropyCallback(uint64 seq, address provider, bytes32 randomNumber) internal override
 
 Read a request:

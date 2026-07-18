@@ -42,7 +42,7 @@ contract MyGame is IEntropyConsumer {
         uint64 seqNum = dice.requestV2{value: msg.value}(
             provider,
             userRandom,
-            100000  // callback gas limit
+            200000  // callback gas limit
         );
         
         requesters[seqNum] = msg.sender;
@@ -74,7 +74,7 @@ const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
 const dice = new DiceProtocol({
   rpcUrl: 'https://rpc.mainnet.chain.robinhood.com',
-  contractAddress: '0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F',
+  contractAddress: '0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0',
 });
 
 // Get current fee
@@ -83,14 +83,14 @@ console.log('Fee:', ethers.formatEther(fee), 'ETH');
 
 // Request randomness
 const userRandom = ethers.randomBytes(32);
-const seqNum = await dice.request(
+const seqNum = await dice.requestRandom(
   '0x8741b8a825644D9Ef18Faf2DAB5e9b47B900F2b6',
   userRandom,
   { value: fee, gasLimit: 200000 }
 );
 
 console.log('Request sequence:', seqNum);
-// Tyche auto-reveals within ~20 seconds
+// Tyche auto-reveals within ~5-15 seconds
 // Your contract's entropyCallback() fires automatically
 ```
 
@@ -98,7 +98,7 @@ console.log('Request sequence:', seqNum);
 
 | Component | Address |
 |-----------|---------|
-| DiceEntropy Contract | `0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F` |
+| DiceEntropy Contract | `0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0` |
 | Provider (Keeper) | `0x8741b8a825644D9Ef18Faf2DAB5e9b47B900F2b6` |
 | Admin | `0x4ACD2C88a239a924E47Fc4995114ca1Bb0CA3CaD` |
 | Vault (Fee Recipient) | `0x918EAF0b2589710B0D85ef48C12a343E68263841` |
@@ -111,7 +111,7 @@ console.log('Request sequence:', seqNum);
 | RPC URL | `https://rpc.mainnet.chain.robinhood.com` |
 | Block Explorer | `https://robinhoodchain.blockscout.com` |
 | Fee per Request | 0.000055 ETH (55,000,000,000,000 wei) |
-| Reveal Time | ~20 seconds (20 blocks) |
+| Reveal Time | ~5-15 seconds |
 
 ## How It Works
 
@@ -143,9 +143,9 @@ User Contract                DiceEntropy                Tyche Keeper
 |-----------|-----|-------|
 | `requestV2()` | ~125,000 | Paid by requester |
 | `revealWithCallback()` | ~200,000 | Paid by keeper |
-| Callback execution | ≤100,000 | Capped by `defaultGasLimit` |
+| Callback execution | ≤200,000 | Capped by `defaultGasLimit` |
 
-The callback gas limit is capped at 100,000 to prevent griefing attacks. If your callback requires more gas, contact the admin to negotiate a higher limit.
+Callers **must** pass an explicit `gasLimit` when using `requestWithCallback`. The provider's on-chain `defaultGasLimit` is currently 0 — omitting the parameter will result in callbacks receiving no gas. The maximum callback gas limit is 655,350,000 (MAX_GAS_LIMIT). If your callback requires more than 200,000 gas, contact the admin to negotiate a higher limit.
 
 ## Error Reference
 
@@ -166,7 +166,7 @@ The callback gas limit is capped at 100,000 to prevent griefing attacks. If your
 |---------|---------------|-----------|
 | Deployment | Native to Robinhood Chain | External |
 | Fee model | Flat 0.000055 ETH | Variable |
-| Reveal time | ~20 seconds | 1-5 minutes |
-| Verifiability | On-chain Keccak256 | Varies |
+| Reveal time | ~5-15 seconds | 1-5 minutes |
+| Verifiability | Onchain Keccak256 | Varies |
 | Callback | Automatic | Manual polling |
 | Infrastructure | Self-hosted keeper | Third-party |

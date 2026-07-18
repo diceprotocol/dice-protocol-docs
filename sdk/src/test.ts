@@ -6,7 +6,7 @@ const { DiceProtocol, ethers } = require('./index');
 async function main() {
   const dice = new DiceProtocol({
     rpcUrl: 'https://rpc.mainnet.chain.robinhood.com',
-    contractAddress: '0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F',
+    contractAddress: '0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0',
   });
 
   console.log('Contract:', dice.getAddress());
@@ -15,9 +15,9 @@ async function main() {
   const defaultProvider = await dice.getDefaultProvider();
   console.log('Default Provider:', defaultProvider);
 
-  // Read treasury fee
-  const treasuryFee = await dice.getTreasuryFee();
-  console.log('Treasury Fee:', treasuryFee.toString(), 'wei');
+  // Read protocol fee
+  const protocolFee = await dice.getProtocolFee();
+  console.log('Protocol Fee:', protocolFee.toString(), 'wei');
 
   // Read provider info
   const info = await dice.getProviderInfo(defaultProvider);
@@ -43,7 +43,7 @@ async function main() {
   console.log('\nHash chain (10 values):');
   console.log('  Commitment (x_0):', chain.commitment);
   console.log('  First reveal (x_1):', chain.revelations[0]);
-  console.log('  Last (x_9 = seed):', chain.revelations[9]);
+  console.log('  Last (x_9 = seed):', chain.revelations[8]);
 
   console.log('\n✅ SDK smoke test passed');
 }

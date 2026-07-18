@@ -2,13 +2,13 @@
 
 **Commit-Reveal Randomness Oracle for Robinhood Chain**
 
-Dice Protocol provides on-chain verifiable randomness through a hash-chain commitment scheme. A designated provider pre-commits to a sequence of random values and reveals them on-demand, combining user-contributed randomness with provider-revealed values using Keccak256.
+Dice Protocol provides onchain verifiable randomness through a hash-chain commitment scheme. A designated provider pre-commits to a sequence of random values and reveals them on-demand, combining user-contributed randomness with provider-revealed values using Keccak256.
 
 ## Why Dice Protocol?
 
 - **Unbiased** — No single party can influence the outcome
-- **Verifiable** — Every reveal is verifiable on-chain via Keccak256
-- **Fast** — Random numbers delivered in ~20 seconds
+- **Verifiable** — Every reveal is verifiable onchain via Keccak256
+- **Fast** — Random numbers delivered in ~5-15 seconds
 - **Affordable** — Flat 0.000055 ETH per request
 - **Immutable** — No proxy, no upgrades, no governance
 - **Automatic** — Keeper auto-reveals, callback fires automatically
@@ -32,7 +32,7 @@ Dice Protocol provides on-chain verifiable randomness through a hash-chain commi
 | Chain | Robinhood Chain (ID: 4663) |
 | RPC | `https://rpc.mainnet.chain.robinhood.com` |
 | Explorer | `https://robinhoodchain.blockscout.com` |
-| Contract | `0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F` |
+| Contract | `0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0` |
 | Fee | 0.000055 ETH per request |
 
 ## Quick Example
@@ -51,7 +51,7 @@ contract MyGame is IEntropyConsumer {
 
     function roll() external payable {
         bytes32 userRandom = keccak256(abi.encodePacked(msg.sender, block.timestamp));
-        dice.requestV2{value: msg.value}(provider, userRandom, 100000);
+        dice.requestV2{value: msg.value}(provider, userRandom, 200000);
     }
 
     function entropyCallback(uint64 seq, address, bytes32 random) internal override {

@@ -7,7 +7,7 @@
  *
  *   const dice = new DiceProtocol({
  *     rpcUrl: 'https://rpc.testnet.chain.robinhood.com/rpc',
- *     contractAddress: '0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F',
+ *     contractAddress: '0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0',
  *   });
  *
  *   // Request randomness
@@ -164,10 +164,10 @@ export class DiceProtocol {
   }
 
   /**
-   * Get the current treasury fee per request
+   * Get the protocol fee per request (treasury fee component).
    */
-  async getTreasuryFee(): Promise<bigint> {
-    return await this.contract.getTreasuryFee();
+  async getProtocolFee(): Promise<bigint> {
+    return await this.contract.getProtocolFee();
   }
 
   // ============================================================
@@ -328,8 +328,7 @@ export class DiceProtocol {
    * Generate a random 32-byte value (for user contribution).
    */
   static generateUserRandom(): string {
-    const crypto = require('crypto');
-    return '0x' + crypto.randomBytes(32).toString('hex');
+    return ethers.hexlify(ethers.randomBytes(32));
   }
 
   /**
@@ -340,8 +339,20 @@ export class DiceProtocol {
   }
 
   /**
-   * Construct a provider commitment from a revelation and the number of hashes.
-   * Repeatedly hashes the revelation `numHashes` times.
+   * Derive a provider commitment from a revelation value.
+   *
+   * Hashes `revelation` exactly `numHashes` times:
+   *   commitment = keccak256^numHashes(revelation)
+   *
+   * Use this to verify an on-chain commitment against a known revelation,
+   * or to compute the commitment at chain setup time.
+   *
+   * Note: `numHashes` is the distance from the revelation to the commitment
+   * in the hash chain, NOT the chain length. For the first reveal (x_1) with
+   * commitment x_0, numHashes = 1.
+   *
+   * @param numHashes Number of keccak256 iterations to apply
+   * @param revelation The preimage to hash (a reveal value, NOT the seed)
    */
   static constructProviderCommitment(numHashes: number, revelation: string): string {
     let current = revelation;
@@ -353,45 +364,33 @@ export class DiceProtocol {
 
   /**
    * Generate a full hash chain from a seed.
-   * @param seed The random seed (32 bytes hex)
-   * @param length Number of values in the chain
-   * @returns { commitment: x_0, revelations: [x_1, x_2, ...] }
+   *
+   * Chain construction (backward from seed):
+   *   x_{n-1} = seed
+   *   x_i = keccak256(x_{i+1})   for i = n-2 down to 0
+   *   x_0 = commitment (registered on-chain)
+   *
+   * Reveal order (forward):
+   *   seq 1 reveals x_1, seq 2 reveals x_2, ..., seq n-1 reveals x_{n-1} = seed
+   *
+   * @param seed The random seed (32 bytes hex) — equals x_{n-1}, the last reveal
+   * @param length Total chain length n (commitment + n-1 reveals)
+   * @returns { commitment: x_0, revelations: [x_1, x_2, ..., x_{n-1}] }
    */
   static generateHashChain(seed: string, length: number): { commitment: string; revelations: string[] } {
     const revelations: string[] = [];
     let current = seed;
-    // x_{length-1} = seed, x_i = hash(x_{i+1}), ..., x_0 = hash(x_1)
+    // Hash forward length-1 times: produces x_{n-2}, x_{n-3}, ..., x_1, x_0
     for (let i = 0; i < length - 1; i++) {
       current = ethers.keccak256(ethers.hexlify(current));
       revelations.push(current);
     }
-    // revelations is now [x_{length-2}, x_{length-3}, ..., x_1, x_0]
-    // Wait, that's wrong. Let me fix the order.
-    // x_{n-1} = seed (the last value)
-    // x_{n-2} = hash(x_{n-1})
-    // ...
-    // x_0 = hash(x_1) — this is the commitment
-    // x_1 is the first reveal, x_2 is the second, etc.
-    revelations.reverse(); // now [x_0, x_1, ..., x_{n-2}]
-    // Wait — we need to re-check. Actually:
-    // We start with seed = x_{n-1}. We hash forward:
-    // i=0: current = hash(seed) = x_{n-2}
-    // i=1: current = hash(x_{n-2}) = x_{n-3}
-    // ...
-    // i=n-2: current = hash(x_1) = x_0
-    // So revelations before reverse = [x_{n-2}, x_{n-3}, ..., x_0]
-    // After reverse: [x_0, x_1, ..., x_{n-2}]
-    // But x_0 is the commitment, and we reveal x_1, x_2, etc.
-    // So commitment = revelations[0] after reverse = x_0 ✓
-    // And reveal values are revelations[1] = x_1, revelations[2] = x_2, etc. ✓
-    // But wait — we also need x_{n-1} which is the seed itself.
-    // Actually, the reveal values should be x_1 through x_{n-1}.
-    // x_{n-1} = seed, but we never pushed it to revelations.
-    // Let me just simplify:
-
+    // revelations is [x_{n-2}, ..., x_1, x_0] — reverse to [x_0, ..., x_{n-2}]
+    revelations.reverse();
+    // commitment = x_0, reveals = [x_1, ..., x_{n-2}] + [x_{n-1} = seed]
     return {
-      commitment: revelations[0], // x_0
-      revelations: revelations.slice(1).concat([seed]), // x_1, x_2, ..., x_{n-1} = seed
+      commitment: revelations[0],
+      revelations: revelations.slice(1).concat([seed]),
     };
   }
 

@@ -4,7 +4,7 @@
 
 ## Abstract
 
-Dice Protocol is a commit-reveal randomness oracle deployed on Robinhood Chain (chain ID 4663), an Arbitrum Nitro-based Layer 2 network. It provides on-chain verifiable randomness through a hash-chain commitment scheme where a designated provider (the keeper) pre-commits to a sequence of random values and reveals them on-demand. The protocol combines user-contributed randomness with provider-revealed values using Keccak256, producing unbiased, manipulation-resistant random numbers delivered via callbacks to consuming smart contracts. Dice Protocol operates as the sole randomness infrastructure on Robinhood Chain under an exclusive provider model, charging a flat fee of 0.000055 ETH per request.
+Dice Protocol is a commit-reveal randomness oracle deployed on Robinhood Chain (chain ID 4663), an Arbitrum Nitro-based Layer 2 network. It provides onchain verifiable randomness through a hash-chain commitment scheme where a designated provider (the keeper) pre-commits to a sequence of random values and reveals them on-demand. The protocol combines user-contributed randomness with provider-revealed values using Keccak256, producing unbiased, manipulation-resistant random numbers delivered via callbacks to consuming smart contracts. Dice Protocol operates as the sole randomness infrastructure on Robinhood Chain under an exclusive provider model, charging a flat fee of 0.000055 ETH per request.
 
 ---
 
@@ -12,21 +12,21 @@ Dice Protocol is a commit-reveal randomness oracle deployed on Robinhood Chain (
 
 ### 1.1 Problem Statement
 
-On-chain applications — games, lotteries, NFT mints, fair randomized distribution mechanisms — require a source of randomness that is:
+Onchain applications — games, lotteries, NFT mints, fair randomized distribution mechanisms — require a source of randomness that is:
 
 1. **Unbiased**: No single party can influence the outcome.
 2. **Verifiable**: The randomness can be independently verified after the fact.
 3. **Available**: The randomness is delivered reliably and within a predictable timeframe.
 4. **Economically viable**: The cost per request is low enough for widespread adoption.
 
-Robinhood Chain, as a new Arbitrum Nitro L2, launched without any randomness oracle infrastructure. No VRF service, no commit-reveal oracle, no on-chain randomness primitive existed. Dice Protocol fills this gap.
+Robinhood Chain, as a new Arbitrum Nitro L2, launched without any randomness oracle infrastructure. No VRF service, no commit-reveal oracle, no onchain randomness primitive existed. Dice Protocol fills this gap.
 
 ### 1.2 Solution
 
 Dice Protocol implements a commit-reveal scheme based on hash chains:
 
 - A **provider** generates a chain of 50,000 random values by repeatedly hashing a secret seed with Keccak256.
-- The provider commits the **root** (final hash) of this chain to the on-chain contract during deployment.
+- The provider commits the **root** (final hash) of this chain to the onchain contract during deployment.
 - When a user requests randomness, they contribute their own random value.
 - The provider reveals the next hash in the chain, which the contract verifies by hashing it and checking against the committed root.
 - The final random number is `Keccak256(userRandomness || providerContribution || blockHash)`, combining both parties' inputs for mutual unpredictability.
@@ -34,7 +34,7 @@ Dice Protocol implements a commit-reveal scheme based on hash chains:
 This approach guarantees:
 - **Provider cannot precompute outcomes**: The provider doesn't know the user's random value at commitment time.
 - **User cannot bias outcomes**: The user's random value is committed before the provider reveals.
-- **Verifiable on-chain**: Anyone can verify the reveal is correct by hashing it.
+- **Verifiable onchain**: Anyone can verify the reveal is correct by hashing it.
 
 ---
 
@@ -77,7 +77,7 @@ This approach guarantees:
 
 ### 2.2 DiceEntropy Contract
 
-The on-chain contract is immutable (no proxy pattern) and handles:
+The onchain contract is immutable (no proxy pattern) and handles:
 
 - **Provider registration**: The constructor auto-registers the default provider with its hash chain commitment, chain length, and metadata.
 - **Request handling**: Users call `requestV2()` with a user random value and optional gas limit. The contract assigns a sequence number and emits a `Requested` event.
@@ -141,7 +141,7 @@ This three-way combination ensures that no single party can bias the outcome, pr
 
 ### 3.3 Commitment Metadata
 
-The provider stores bincode-serialized commitment metadata on-chain:
+The provider stores bincode-serialized commitment metadata onchain:
 
 ```
 CommitmentMetadata {
@@ -150,7 +150,7 @@ CommitmentMetadata {
 }
 ```
 
-This allows the Tyche keeper to reconstruct the hash chain from on-chain data alone, without requiring off-chain coordination.
+This allows the Tyche keeper to reconstruct the hash chain from onchain data alone, without requiring off-chain coordination.
 
 ### 3.4 Security Properties
 
@@ -158,9 +158,9 @@ This allows the Tyche keeper to reconstruct the hash chain from on-chain data al
 |----------|-----------|
 | Unpredictability | Provider cannot predict user's random value at commitment time |
 | Non-biasability | User cannot influence provider's contribution |
-| Verifiability | Each reveal is verifiable on-chain via Keccak256 |
+| Verifiability | Each reveal is verifiable onchain via Keccak256 |
 | Tamper resistance | Immutable contract, no upgrade path |
-| Gas bounded | Callback gas capped at `defaultGasLimit` (100,000) |
+| Gas bounded | Callback gas capped at `defaultGasLimit` (200,000) |
 | Chain exhaustion protection | `OutOfRandomness` error when chain depleted |
 
 ---
@@ -178,7 +178,7 @@ Dice Protocol uses a **single flat fee** model:
 There is no protocol fee, no provider fee split, and no gas subsidy. The fee is set to cover:
 - Keeper gas costs for reveal transactions (~0.000006 ETH at current gas prices)
 - Infrastructure costs (VPS, monitoring)
-- Profit margin (~88%)
+- Gross margin (~65%, derived from gas economics below)
 
 ### 4.2 Gas Economics
 
@@ -285,7 +285,7 @@ keeper:
 chains:
   4663:
     geth_rpc_addr: "https://rpc.mainnet.chain.robinhood.com"
-    contract_addr: "0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F"
+    contract_addr: "0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0"
     reveal_delay_blocks: 0
     confirmed_block_status: "Latest"
     gas_limit: 500000
@@ -311,9 +311,9 @@ Tyche runs as a systemd service (`dice-tyche.service`) with:
 
 | Attack | Mitigation |
 |--------|------------|
-| Provider withholds reveal | No on-chain penalty in v1; relies on service uptime. Future: slashing. |
+| Provider withholds reveal | No onchain penalty in v1; relies on service uptime. Future: slashing. |
 | User front-runs reveal | User commits random value before provider reveals; provider cannot see it in advance. |
-| Callback gas griefing | `defaultGasLimit` caps callback gas at 100,000. Uses `excessivelySafeCall`. |
+| Callback gas griefing | `defaultGasLimit` caps callback gas at 200,000. Uses `excessivelySafeCall`. |
 | Chain exhaustion | `OutOfRandomness` revert when sequence exceeds chain length. |
 | Private key compromise | Three-wallet separation limits blast radius. Keeper cannot steal fees. |
 | Contract reentrancy | `excessivelySafeCall` pattern prevents callback reentrancy into reveal logic. |
@@ -347,13 +347,13 @@ import { DiceProtocol } from '@dice-protocol/sdk';
 
 const dice = new DiceProtocol({
   rpcUrl: 'https://rpc.mainnet.chain.robinhood.com',
-  contractAddress: '0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F',
+  contractAddress: '0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0',
 });
 
 // Request randomness
-const seqNum = await dice.request(providerAddress, userRandom, {
+const seqNum = await dice.requestRandom(providerAddress, userRandom, {
   value: feeInWei,
-  gasLimit: 100000,
+  gasLimit: 200000,
 });
 
 // Wait for callback (consumer contract receives random number)
@@ -376,7 +376,7 @@ contract MyGame is IEntropyConsumer {
     
     function roll() external payable {
         bytes32 userRandom = keccak256(abi.encodePacked(msg.sender, block.timestamp));
-        dice.requestV2{value: msg.value}(provider, userRandom, 100000);
+        dice.requestV2{value: msg.value}(provider, userRandom, 200000);
     }
     
     function entropyCallback(uint64 seq, address, bytes32 random) internal override {
@@ -406,7 +406,7 @@ contract MyGame is IEntropyConsumer {
 - SDK npm package publish
 
 ### v2.0 (Q4 2026)
-- On-chain slashing for provider non-responsiveness
+- Onchain slashing for provider non-responsiveness
 - Variable fee tiers (basic/premium)
 - Cross-chain expansion to other Nitro L2s
 
@@ -418,7 +418,7 @@ contract MyGame is IEntropyConsumer {
 
 | Component | Address |
 |-----------|---------|
-| DiceEntropy | `0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F` |
+| DiceEntropy | `0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0` |
 | TestConsumer | `0xa1d2C96EC9E5110f962264C5489D78299a88C677` |
 | Admin | `0x4ACD2C88a239a924E47Fc4995114ca1Bb0CA3CaD` |
 | Vault | `0x918EAF0b2589710B0D85ef48C12a343E68263841` |
@@ -433,7 +433,7 @@ contract MyGame is IEntropyConsumer {
 | Explorer | `https://robinhoodchain.blockscout.com` |
 | Fee | 55,000,000,000,000 wei (0.000055 ETH) |
 | Hash chain length | 50,000 |
-| defaultGasLimit | 100,000 |
+| defaultGasLimit | 200,000 |
 
 ### C. Hash Chain Parameters
 
