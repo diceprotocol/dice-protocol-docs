@@ -8,8 +8,8 @@ Dice Protocol provides onchain verifiable randomness through a hash-chain commit
 
 - **Unbiased** — No single party can influence the outcome
 - **Verifiable** — Every reveal is verifiable onchain via Keccak256
-- **Fast** — Random numbers delivered in ~5-15 seconds
-- **Affordable** — Flat 0.000055 ETH per request
+- **Fast** — Random numbers delivered in ~3.5 seconds
+- **Affordable** — Flat 0.000025 ETH per request
 - **Immutable** — No proxy, no upgrades, no governance
 - **Automatic** — Keeper auto-reveals, callback fires automatically
 
@@ -33,13 +33,13 @@ Dice Protocol provides onchain verifiable randomness through a hash-chain commit
 | RPC | `https://rpc.mainnet.chain.robinhood.com` |
 | Explorer | `https://robinhoodchain.blockscout.com` |
 | Contract | `0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0` |
-| Fee | 0.000055 ETH per request |
+| Fee | 0.000025 ETH per request |
 
 ## Quick Example
 
 ```solidity
-import { IEntropyConsumer } from "@dice-protocol/sdk/IEntropyConsumer.sol";
-import { IEntropy } from "@dice-protocol/sdk/IEntropy.sol";
+import { IEntropyConsumer } from "@diceprotocol/sdk/IEntropyConsumer.sol";
+import { IEntropy } from "@diceprotocol/sdk/IEntropy.sol";
 
 contract MyGame is IEntropyConsumer {
     IEntropy public immutable dice;
