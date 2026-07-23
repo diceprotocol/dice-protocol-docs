@@ -16,7 +16,7 @@ import { ethers } from 'ethers';
 
 const dice = new DiceProtocol({
   rpcUrl: 'https://rpc.mainnet.chain.robinhood.com',
-  contractAddress: '0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0',
+  contractAddress: '0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c',
 });
 
 // Get current fee
@@ -30,7 +30,7 @@ console.log('Fee:', ethers.formatEther(fee), 'ETH');
 |-----------|-------|
 | Chain | Robinhood Chain (ID: 4663) |
 | RPC | `https://rpc.mainnet.chain.robinhood.com` |
-| Contract | `0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0` |
+| Contract | `0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c` |
 | Fee | 0.000025 ETH per request |
 
 ## License

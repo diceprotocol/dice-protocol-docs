@@ -7,7 +7,7 @@
  *
  *   const dice = new DiceProtocol({
  *     rpcUrl: 'https://rpc.testnet.chain.robinhood.com/rpc',
- *     contractAddress: '0x2AD7fc99e3D8A8Da72802936DD5145Bf672206b0',
+ *     contractAddress: '0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c',
  *   });
  *
  *   // Request randomness
