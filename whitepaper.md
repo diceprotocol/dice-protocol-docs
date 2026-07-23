@@ -175,7 +175,7 @@ Dice Protocol does not incorporate block data into its randomness. The output is
 
 This is specific to the L2 context. Robinhood Chain runs on a single centralized sequencer. Block production is deterministic and ordered — there is no competitive mining process that would make block hashes independently unpredictable. Treating an L2 block hash as an entropy source would import a value controlled by one operator, which is the opposite of the decentralization that makes block hashes useful on L1.
 
-The tradeoff is clear: zero delay gives ~3.5-second request-to-callback latency, and the two-party commit-reveal design already guarantees that neither the user nor the provider can bias the result. The security model does not depend on block timing or sequencer behavior — it depends on two independent parties each contributing unpredictability that the other cannot control.
+The tradeoff is clear: zero delay gives ~1–3 second typical request-to-callback latency, and the two-party commit-reveal design already guarantees that neither the user nor the provider can bias the result. The security model does not depend on block timing or sequencer behavior — it depends on two independent parties each contributing unpredictability that the other cannot control.
 
 ---
 
@@ -412,7 +412,7 @@ contract MyGame is IEntropyConsumer {
 
 ### v1.0 (Current — July 2026)
 - ✅ DiceEntropy contract deployed on Robinhood Chain mainnet
-- ✅ Tyche keeper operational with auto-reveal (~3.5s latency) and backup replica for high availability
+- ✅ Tyche keeper operational with auto-reveal (~1–3s typical latency) and backup replica for high availability
 - ✅ TypeScript SDK published to npm (`@diceprotocol/sdk`)
 - ✅ Fee set to 0.000025 ETH (live on-chain)
 - ✅ Admin role accepted (0x4ACD...)
