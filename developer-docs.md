@@ -1,10 +1,10 @@
 # Dice Protocol — Developer Documentation
 
-> **Contract:** [`0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F`](https://robinhoodchain.blockscout.com/address/0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F)
+> **Contract:** [`0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0`](https://robinhoodchain.blockscout.com/address/0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0)
 > **Chain:** Robinhood Chain Mainnet (Chain ID: 4663)
-> **Fee:** 0.000055 ETH per request
+> **Fee:** 0.000025 ETH per request
 > **Solidity:** ^0.8.24
-> **License:** Apache-2.0
+> **License:** MIT
 
 ---
 
@@ -34,7 +34,7 @@ Dice Protocol is a trustless commit-reveal randomness oracle deployed on Robinho
 - **Unbiased** — The random number is derived from contributions by both the requester and the provider. Neither party alone controls or can predict the outcome.
 - **Immutable** — The contract is deployed without a proxy. The logic can never be changed.
 - **Callback-based** — When the random number is ready, the contract calls back into the requesting contract automatically. No polling or manual retrieval is needed.
-- **Single fee model** — A flat fee of 0.000055 ETH per request. All fees accrue to a protocol vault.
+- **Single fee model** — A flat fee of 0.000025 ETH per request. All fees accrue to a protocol vault.
 - **Exclusive provider** — Providers are registered by the protocol admin only. No permissionless registration.
 
 ### How It Works (Commit-Reveal)
@@ -55,7 +55,7 @@ Dice Protocol is a trustless commit-reveal randomness oracle deployed on Robinho
 
 1. **User commits** — The requester generates a 32-byte random number (`userRandom`) and submits only its hash (`keccak256(userRandom)`) on-chain via `requestV2()`. The raw value stays secret.
 2. **Provider reveals** — The provider holds a pre-committed hash chain. Upon seeing the `Requested` event, it submits the next chain value (`providerRevelation`) via `revealWithCallback()`. The contract verifies this value hashes back to the provider's published commitment.
-3. **Random number derived** — `randomNumber = keccak256(userRandom, providerContribution, blockHash)`. Since V2 always sets `useBlockhash = false`, the formula is effectively `keccak256(userRandom, providerContribution, 0)`.
+3. **Random number derived** — `randomNumber = keccak256(userRandom, providerContribution)`. Since V2 always sets `useBlockhash = false`, the formula is effectively `keccak256(userRandom, providerContribution)`.
 4. **Callback** — The contract calls `entropyCallback(sequence, provider, randomNumber)` on the requesting contract. If the callback reverts or runs out of gas, the reveal still succeeds and the failure is recorded in the `Revealed` event.
 
 ### Hash Chain
@@ -85,7 +85,7 @@ When the chain runs low, the provider registers a new chain via `registerFor()`.
 ```
 @openzeppelin/=lib/openzeppelin-contracts/contracts/
 @excessively-safe-call/=lib/ExcessivelySafeCall/
-@dice-protocol/=src/
+@diceprotocol/sdk/=src/
 ```
 
 **Foundry config** (`contracts/foundry.toml`):
@@ -111,7 +111,7 @@ optimizer_runs = 200
 
 ```bash
 # Install the SDK
-npm install @dice-protocol/sdk
+npm install @diceprotocol/sdk/sdk
 
 # Or build from source
 cd sdk && npm install && npm run build
@@ -579,7 +579,7 @@ function combineRandomValues(
 ) public pure returns (bytes32 combinedRandomness)
 ```
 
-Computes `keccak256(abi.encodePacked(userRandomness, providerRandomness, blockHash))`. In V2, `blockHash` is always `bytes32(0)`.
+Computes `keccak256(abi.encodePacked(userRandomness, providerRandomness))`. In V2, blockHash is not used (useBlockHash=false). The combination is two-party.
 
 ---
 
@@ -885,8 +885,8 @@ This is the standard pattern for smart contracts that need randomness. The consu
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IEntropyConsumer} from "@dice-protocol/sdk/IEntropyConsumer.sol";
-import {IEntropy} from "@dice-protocol/sdk/IEntropy.sol";
+import {IEntropyConsumer} from "@diceprotocol/sdk/sdk/IEntropyConsumer.sol";
+import {IEntropy} from "@diceprotocol/sdk/sdk/IEntropy.sol";
 
 contract MyGame is IEntropyConsumer {
     IEntropy public immutable dice;
@@ -968,15 +968,15 @@ bytes32 randomNumber = dice.reveal(provider, seq, userRandom, providerRevelation
 
 ### Pattern C: TypeScript SDK
 
-The `@dice-protocol/sdk` package provides a TypeScript interface for off-chain integration.
+The `@diceprotocol/sdk/sdk` package provides a TypeScript interface for off-chain integration.
 
 ```typescript
-import { DiceProtocol, ethers } from '@dice-protocol/sdk';
+import { DiceProtocol, ethers } from '@diceprotocol/sdk/sdk';
 
 // Initialize
 const dice = new DiceProtocol({
   rpcUrl: 'https://rpc.mainnet.chain.robinhood.com',
-  contractAddress: '0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F',
+  contractAddress: '0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0',
 });
 
 // Load wallet
@@ -1047,7 +1047,7 @@ dice.onRequest(async (event) => {
 The `PRNG` contract helps derive multiple random values from a single `bytes32` random number:
 
 ```solidity
-import {PRNG} from "@dice-protocol/sdk/PRNG.sol";
+import {PRNG} from "@diceprotocol/sdk/sdk/PRNG.sol";
 
 contract DiceGame is IEntropyConsumer, PRNG {
     constructor(address _dice, address _provider)
@@ -1083,7 +1083,7 @@ Dice Protocol uses a **single flat fee model**:
 
 | Property | Value |
 |----------|-------|
-| Fee per request | 0.000055 ETH (55,000,000,000,000 wei) |
+| Fee per request | 0.000025 ETH (25,000,000,000,000 wei) |
 | Fee destination | Protocol vault |
 | Per-provider fees | Not supported (always reverts) |
 | Fee managers | Not supported (always reverts) |
@@ -1131,7 +1131,7 @@ The vault address is set at deployment and receives all withdrawn fees. There is
 
 | Parameter | Value |
 |-----------|-------|
-| Fee | 0.000055 ETH |
+| Fee | 0.000025 ETH |
 | Vault | `0x918EAF0b2589710B0D85ef48C12a343E68263841` |
 | Admin | `0x4ACD2C88a239a924E47Fc4995114ca1Bb0CA3CaD` |
 
@@ -1271,12 +1271,12 @@ The test suite is in `contracts/test/`:
 ### Writing Your Own Tests
 
 ```solidity
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
-import {DiceEntropy} from "@dice-protocol/DiceEntropy.sol";
-import {DiceErrors} from "@dice-protocol/sdk/DiceErrors.sol";
+import {DiceEntropy} from "@diceprotocol/sdk/DiceEntropy.sol";
+import {DiceErrors} from "@diceprotocol/sdk/sdk/DiceErrors.sol";
 
 contract MyConsumerTest is Test {
     DiceEntropy public dice;
@@ -1332,13 +1332,13 @@ The contract is deployed and verified on Robinhood Chain Mainnet:
 
 | Property | Value |
 |----------|-------|
-| Contract Address | `0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F` |
+| Contract Address | `0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0` |
 | Chain ID | 4663 |
 | RPC URL | `https://rpc.mainnet.chain.robinhood.com` |
 | Explorer | `https://robinhoodchain.blockscout.com` |
 | Solidity Version | 0.8.24 |
 | Optimizer | Enabled (200 runs) |
-| Fee | 0.000055 ETH (55,000,000,000,000 wei) |
+| Fee | 0.000025 ETH (25,000,000,000,000 wei) |
 | Vault | `0x918EAF0b2589710B0D85ef48C12a343E68263841` |
 | Admin | `0x4ACD2C88a239a924E47Fc4995114ca1Bb0CA3CaD` |
 | Default Provider | `0x8741b8a825644D9Ef18Faf2DAB5e9b47B900F2b6` |
@@ -1359,7 +1359,7 @@ forge build
 #### 2. Generate a Hash Chain
 
 ```typescript
-import { DiceProtocol } from '@dice-protocol/sdk';
+import { DiceProtocol } from '@diceprotocol/sdk/sdk';
 import crypto from 'crypto';
 
 const seed = '0x' + crypto.randomBytes(32).toString('hex');
@@ -1396,7 +1396,7 @@ forge create DiceEntropy \
 | Position | Name | Example Value |
 |----------|------|---------------|
 | 1 | `admin` | `0x4ACD...` |
-| 2 | `feeInWei` | `55000000000000` (0.000055 ETH) |
+| 2 | `feeInWei` | `55000000000000` (0.000025 ETH) |
 | 3 | `defaultProvider` | `0x8741...` |
 | 4 | `prefillRequestStorage` | `true` |
 | 5 | `vault` | `0x918E...` |
@@ -1441,7 +1441,7 @@ The keeper monitors `Requested` events, looks up the corresponding hash chain va
 
 ```env
 # Contract
-DICE_ENTROPY_ADDRESS=0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F
+DICE_ENTROPY_ADDRESS=0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0
 RH_CHAIN_RPC_MAINNET=https://rpc.mainnet.chain.robinhood.com
 RH_CHAIN_WS_MAINNET=wss://ws.mainnet.chain.robinhood.com
 RH_CHAIN_CHAIN_ID=4663
@@ -1463,22 +1463,22 @@ DICE_VAULT_ADDRESS=0x918EAF0b2589710B0D85ef48C12a343E68263841
 
 | Chain | Chain ID | Contract Address | Status |
 |-------|----------|-----------------|--------|
-| Robinhood Chain Mainnet | 4663 | `0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F` | ✅ Live |
-| Robinhood Chain Testnet | 46630 | `0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F` | ✅ Live |
+| Robinhood Chain Mainnet | 4663 | `0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0` | ✅ Live |
+| Robinhood Chain Testnet | 46630 | `0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0` | ✅ Live |
 
 ### Import Paths (Solidity)
 
 ```
-@dice-protocol/DiceEntropy.sol              — Main contract
-@dice-protocol/DiceState.sol                — Storage layout
-@dice-protocol/sdk/IEntropy.sol             — Full interface
-@dice-protocol/sdk/IEntropyV2.sol           — V2 interface
-@dice-protocol/sdk/IEntropyConsumer.sol     — Consumer base contract
-@dice-protocol/sdk/DiceStructsV2.sol        — Struct definitions
-@dice-protocol/sdk/DiceErrors.sol           — Error definitions
-@dice-protocol/sdk/DiceEventsV2.sol         — Event definitions
-@dice-protocol/sdk/DiceStatusConstants.sol  — Callback status constants
-@dice-protocol/sdk/PRNG.sol                 — PRNG utility
+@diceprotocol/sdk/DiceEntropy.sol              — Main contract
+@diceprotocol/sdk/DiceState.sol                — Storage layout
+@diceprotocol/sdk/sdk/IEntropy.sol             — Full interface
+@diceprotocol/sdk/sdk/IEntropyV2.sol           — V2 interface
+@diceprotocol/sdk/sdk/IEntropyConsumer.sol     — Consumer base contract
+@diceprotocol/sdk/sdk/DiceStructsV2.sol        — Struct definitions
+@diceprotocol/sdk/sdk/DiceErrors.sol           — Error definitions
+@diceprotocol/sdk/sdk/DiceEventsV2.sol         — Event definitions
+@diceprotocol/sdk/sdk/DiceStatusConstants.sol  — Callback status constants
+@diceprotocol/sdk/sdk/PRNG.sol                 — PRNG utility
 ```
 
 ### SDK Import (TypeScript)
@@ -1492,7 +1492,7 @@ import {
   type RequestInfo,
   type RevealEvent,
   type RequestEvent,
-} from '@dice-protocol/sdk';
+} from '@diceprotocol/sdk/sdk';
 ```
 
 ### Common Workflows Cheat Sheet

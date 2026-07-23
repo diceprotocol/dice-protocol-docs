@@ -5,7 +5,7 @@
 ### 1. Install the SDK
 
 ```bash
-npm install @dice-protocol/sdk
+npm install @diceprotocol/sdk
 ```
 
 ### 2. Request Randomness (Solidity)
@@ -14,8 +14,8 @@ npm install @dice-protocol/sdk
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { IEntropyConsumer } from "@dice-protocol/sdk/IEntropyConsumer.sol";
-import { IEntropy } from "@dice-protocol/sdk/IEntropy.sol";
+import { IEntropyConsumer } from "@diceprotocol/sdk/IEntropyConsumer.sol";
+import { IEntropy } from "@diceprotocol/sdk/IEntropy.sol";
 
 contract MyGame is IEntropyConsumer {
     IEntropy public immutable dice;
@@ -66,7 +66,7 @@ contract MyGame is IEntropyConsumer {
 ### 3. Request Randomness (TypeScript)
 
 ```typescript
-import { DiceProtocol } from '@dice-protocol/sdk';
+import { DiceProtocol } from '@diceprotocol/sdk';
 import { ethers } from 'ethers';
 
 const provider = new ethers.JsonRpcProvider('https://rpc.mainnet.chain.robinhood.com');
@@ -74,7 +74,7 @@ const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
 const dice = new DiceProtocol({
   rpcUrl: 'https://rpc.mainnet.chain.robinhood.com',
-  contractAddress: '0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F',
+  contractAddress: '0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0',
 });
 
 // Get current fee
@@ -98,7 +98,7 @@ console.log('Request sequence:', seqNum);
 
 | Component | Address |
 |-----------|---------|
-| DiceEntropy Contract | `0x777Af3fE41855Cb9E06Ae51ed7941F4A4241690F` |
+| DiceEntropy Contract | `0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0` |
 | Provider (Keeper) | `0x8741b8a825644D9Ef18Faf2DAB5e9b47B900F2b6` |
 | Admin | `0x4ACD2C88a239a924E47Fc4995114ca1Bb0CA3CaD` |
 | Vault (Fee Recipient) | `0x918EAF0b2589710B0D85ef48C12a343E68263841` |
@@ -110,7 +110,7 @@ console.log('Request sequence:', seqNum);
 | Chain ID | 4663 |
 | RPC URL | `https://rpc.mainnet.chain.robinhood.com` |
 | Block Explorer | `https://robinhoodchain.blockscout.com` |
-| Fee per Request | 0.000055 ETH (55,000,000,000,000 wei) |
+| Fee per Request | 0.000025 ETH (25,000,000,000,000 wei) |
 | Reveal Time | ~20 seconds (20 blocks) |
 
 ## How It Works
@@ -119,7 +119,7 @@ console.log('Request sequence:', seqNum);
 User Contract                DiceEntropy                Tyche Keeper
      │                            │                          │
      │── requestV2() ────────────►│                          │
-     │   (pays 0.000055 ETH)      │                          │
+     │   (pays 0.000025 ETH)      │                          │
      │                            │── Requested event ──────►│
      │                            │                          │
      │                            │   (computes reveal value) │
@@ -132,7 +132,7 @@ User Contract                DiceEntropy                Tyche Keeper
 
 ## Fee Handling
 
-- Each request costs exactly **0.000055 ETH**
+- Each request costs exactly **0.000025 ETH**
 - Fees accrue in the contract
 - Admin withdraws accumulated fees to the vault via `withdrawFees()`
 - The keeper is funded separately for gas costs
@@ -165,7 +165,7 @@ The callback gas limit is capped at 100,000 to prevent griefing attacks. If your
 | Feature | Dice Protocol | Other RNG |
 |---------|---------------|-----------|
 | Deployment | Native to Robinhood Chain | External |
-| Fee model | Flat 0.000055 ETH | Variable |
+| Fee model | Flat 0.000025 ETH | Variable |
 | Reveal time | ~20 seconds | 1-5 minutes |
 | Verifiability | On-chain Keccak256 | Varies |
 | Callback | Automatic | Manual polling |
