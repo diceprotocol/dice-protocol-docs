@@ -4,19 +4,38 @@
   "description": "TypeScript SDK for Dice Protocol — trustless RNG on Robinhood Chain",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/index.js",
+    "dist/index.d.ts",
+    "dist/abi.json",
+    "dist/generated",
+    "src/abi.json",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "build": "tsc",
-    "test": "node --test dist/test/ || true",
+    "build": "tsc && cp src/abi.json dist/abi.json",
+    "generate-types": "typechain --target ethers-v6 --out-dir src/generated src/abi.json",
+    "test": "node --test dist/test.js",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["dice", "randomness", "oracle", "rng", "robinhood-chain", "blockchain"],
+  "keywords": [
+    "dice",
+    "randomness",
+    "oracle",
+    "rng",
+    "robinhood-chain",
+    "blockchain"
+  ],
   "license": "MIT",
   "author": "Babylon Agent",
   "dependencies": {
     "ethers": "^6.13.0"
   },
   "devDependencies": {
-    "typescript": "^5.5.0",
-    "@types/node": "^20.0.0"
+    "@typechain/ethers-v6": "^0.5.1",
+    "@types/node": "^20.0.0",
+    "typechain": "^8.3.2",
+    "typescript": "^5.5.0"
   }
 }

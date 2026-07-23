@@ -6,7 +6,7 @@
 - DiceEntropy contract live on Robinhood Chain mainnet
 - Tyche keeper operational (systemd, auto-reveal verified)
 - TypeScript SDK (built, ready to publish)
-- Security audit complete (0 critical/high)
+- Security audit complete (v9: 1 critical mitigated, 2 high under remediation)
 - 50,000-value hash chain committed
 - E2E verified: request → auto-reveal → callback → random number delivered
 
@@ -45,7 +45,7 @@
 
 ### Protocol Upgrades
 - [ ] Multi-provider support (competing providers, user choice)
-- [ ] On-chain slashing for non-responsive providers
+- [ ] Onchain slashing for non-responsive providers
 - [ ] Variable fee tiers (basic/premium with different gas limits)
 - [ ] Governance for parameter changes (admin → DAO transition)
 
