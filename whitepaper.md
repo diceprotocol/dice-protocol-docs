@@ -25,7 +25,7 @@ Robinhood Chain, as a new Arbitrum Nitro L2, launched without any randomness ora
 
 Dice Protocol implements a commit-reveal scheme based on hash chains:
 
-- A **provider** generates a hash chain of random values (live v10 registration length is 1,000; longer chains are supported) by repeatedly hashing a secret seed with Keccak256.
+- A **provider** generates a hash chain of random values (live v10 registration length is 500,000; longer chains are supported) by repeatedly hashing a secret seed with Keccak256.
 - The provider commits the **root** (final hash) of this chain to the onchain contract during deployment.
 - When a user requests randomness, they contribute their own random value.
 - The provider reveals the next hash in the chain, which the contract verifies by hashing it and checking against the committed root.
@@ -148,7 +148,7 @@ The provider stores bincode-serialized commitment metadata onchain:
 ```
 CommitmentMetadata {
     seed: [u8; 32],        // The original secret seed
-    chain_length: u64,     // Total chain length (live v10: 1000)
+    chain_length: u64,     // Total chain length (live v10: 500000)
 }
 ```
 
@@ -208,7 +208,7 @@ The keeper spends ~0.0000051 ETH per request in gas (53,506 gas at ~0.095 gwei).
 
 ### 4.3 Chain Renewal
 
-Each hash chain has a finite configured length. Live v10 currently has 1,000 entries registered. At current usage projections (100 requests/day), a chain lasts ~5,000 days. When the chain is exhausted, the admin registers a new commitment via `registerFor()` and the keeper is configured with the new seed.
+Each hash chain has a finite configured length. Live v10 currently has 500,000 entries registered. At current usage projections (100 requests/day), a chain lasts ~5,000 days. When the chain is exhausted, the admin registers a new commitment via `registerFor()` and the keeper is configured with the new seed.
 
 ---
 
@@ -452,7 +452,7 @@ contract MyGame is IEntropyConsumer {
 | RPC URL | `https://rpc.mainnet.chain.robinhood.com` |
 | Explorer | `https://robinhoodchain.blockscout.com` |
 | Fee | 25,000,000,000,000 wei (0.000025 ETH) |
-| Hash chain length | 1,000 (live v10 registration) |
+| Hash chain length | 500,000 (live v10 registration) |
 | defaultGasLimit | 200,000 |
 
 ### C. Hash Chain Parameters
