@@ -423,10 +423,10 @@ contract MyGame is IEntropyConsumer {
 ### v1.1 (Q3 2026)
 - Multi-provider support (redundancy)
 - Tyche monitoring dashboard
-- Self-hosted RPC node for sub-1s latency
+- Self-hosted RPC node for improved latency
 
 ### v2.0 (Q4 2026)
-- Onchain slashing for provider non-responsiveness
+- Slashing mechanism for provider non-responsiveness (requires new deployment)
 - Variable fee tiers (basic/premium)
 - Cross-chain expansion to other Nitro L2s
 

@@ -158,7 +158,6 @@ The callback gas limit is capped at 100,000 to prevent griefing attacks. If your
 | `OutOfRandomness` | Hash chain exhausted |
 | `MaxGasLimitExceeded` | Requested gas limit > MAX_GAS_LIMIT |
 | `Unauthorized` | Caller lacks permission |
-| `BlockhashUnavailable` | Block hash for request block not available |
 
 ## Comparison
 
