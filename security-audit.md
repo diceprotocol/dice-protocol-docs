@@ -9,7 +9,7 @@
 
 ## Summary
 
-**Note: This report covers the original Slither scan. The v9 deployment audit (2026-07-18) found additional findings including 1 critical (keeper credential exposure, mitigated) and 2 high-severity issues. See the full v9 audit report for current status. The findings below from the Slither scan remain valid.**
+**Note: This report covers the original Slither scan. The historical pre-v10 deployment audit (2026-07-18) found additional findings including 1 critical (keeper credential exposure, mitigated) and 2 high-severity issues. See the full v9 audit report for current status. The findings below from the Slither scan remain valid.**
 
 All 25 detector results are informational, low-severity, or inherent to the
 commit-reveal RNG design pattern. The contract uses checks-effects-interactions

@@ -7,7 +7,7 @@
 - Tyche keeper operational (systemd, auto-reveal verified)
 - TypeScript SDK (built, ready to publish)
 - Security audit complete (v9: 1 critical mitigated, 2 high under remediation)
-- 50,000-value hash chain committed
+- 1,000-value hash chain currently registered on live v10
 - E2E verified: request → auto-reveal → callback → random number delivered
 
 ## v1.1 (Q3 2026)
@@ -19,7 +19,7 @@
 - [ ] Automatic keeper wallet top-up (watch balance, alert when low)
 
 ### SDK
-- [ ] npm publish `@dice-protocol/sdk`
+- [ ] npm publish `@diceprotocol/sdk`
 - [ ] React hook (`useDiceRandom()`)
 - [ ] Python SDK for off-chain verification
 - [ ] Hardhat/Foundry integration helpers

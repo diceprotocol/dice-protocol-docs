@@ -3,7 +3,7 @@
  * Trustless RNG infrastructure for Robinhood Chain.
  *
  * Usage:
- *   import { DiceProtocol } from '@dice-protocol/sdk';
+ *   import { DiceProtocol } from '@diceprotocol/sdk';
  *
  *   const dice = new DiceProtocol({
  *     rpcUrl: 'https://rpc.testnet.chain.robinhood.com/rpc',

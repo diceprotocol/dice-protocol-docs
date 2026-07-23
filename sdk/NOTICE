@@ -1,0 +1,15 @@
+Dice Protocol
+
+This project includes smart contract architecture and interface concepts
+adapted from Pyth Entropy / pyth-crosschain.
+
+Upstream project:
+https://github.com/pyth-network/pyth-crosschain
+
+Pyth Entropy / pyth-crosschain is licensed under the Apache License 2.0.
+Copyright 2025 Pyth Data Association.
+
+Dice Protocol modifications are maintained by Dice Protocol.
+Dice-specific modifications include Robinhood Chain deployment integration,
+single-fee protocol economics, exclusive provider registration, Tyche keeper
+integration, SDK/docs packaging, and launch-specific operational tooling.

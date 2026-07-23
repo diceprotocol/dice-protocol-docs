@@ -25,7 +25,7 @@ Robinhood Chain, as a new Arbitrum Nitro L2, launched without any randomness ora
 
 Dice Protocol implements a commit-reveal scheme based on hash chains:
 
-- A **provider** generates a chain of 500,000 random values by repeatedly hashing a secret seed with Keccak256.
+- A **provider** generates a hash chain of random values (live v10 registration length is 1,000; longer chains are supported) by repeatedly hashing a secret seed with Keccak256.
 - The provider commits the **root** (final hash) of this chain to the onchain contract during deployment.
 - When a user requests randomness, they contribute their own random value.
 - The provider reveals the next hash in the chain, which the contract verifies by hashing it and checking against the committed root.
@@ -148,7 +148,7 @@ The provider stores bincode-serialized commitment metadata onchain:
 ```
 CommitmentMetadata {
     seed: [u8; 32],        // The original secret seed
-    chain_length: u64,     // Total chain length (500,000)
+    chain_length: u64,     // Total chain length (live v10: 1000)
 }
 ```
 
@@ -208,7 +208,7 @@ The keeper spends ~0.0000051 ETH per request in gas (53,506 gas at ~0.095 gwei).
 
 ### 4.3 Chain Renewal
 
-Each hash chain has 500,000 entries. At current usage projections (100 requests/day), a chain lasts ~5,000 days. When the chain is exhausted, the admin registers a new commitment via `registerFor()` and the keeper is configured with the new seed.
+Each hash chain has a finite configured length. Live v10 currently has 1,000 entries registered. At current usage projections (100 requests/day), a chain lasts ~5,000 days. When the chain is exhausted, the admin registers a new commitment via `registerFor()` and the keeper is configured with the new seed.
 
 ---
 
@@ -291,7 +291,7 @@ provider:
   address: "0x8741..."
   secret:
     value: "<hex seed without 0x prefix>"
-  chain_length: 500000
+  chain_length: 1000  # live v10 registration; increase when rotating
 
 keeper:
   private_key:
@@ -300,7 +300,7 @@ keeper:
 chains:
   4663:
     geth_rpc_addr: "https://rpc.mainnet.chain.robinhood.com"
-    contract_addr: "0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0"
+    contract_addr: "0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c"
     reveal_delay_blocks: 0
     confirmed_block_status: "Latest"
     gas_limit: 500000
@@ -366,7 +366,7 @@ import { DiceProtocol } from '@diceprotocol/sdk';
 
 const dice = new DiceProtocol({
   rpcUrl: 'https://rpc.mainnet.chain.robinhood.com',
-  contractAddress: '0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0',
+  contractAddress: '0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c',
 });
 
 // Request randomness
@@ -438,7 +438,7 @@ contract MyGame is IEntropyConsumer {
 
 | Component | Address |
 |-----------|---------|
-| DiceEntropy | `0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0` |
+| DiceEntropy | `0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c` |
 | TestConsumer | `0xa1d2C96EC9E5110f962264C5489D78299a88C677` |
 | Admin | `0x4ACD2C88a239a924E47Fc4995114ca1Bb0CA3CaD` |
 | Vault | `0x918EAF0b2589710B0D85ef48C12a343E68263841` |
@@ -452,7 +452,7 @@ contract MyGame is IEntropyConsumer {
 | RPC URL | `https://rpc.mainnet.chain.robinhood.com` |
 | Explorer | `https://robinhoodchain.blockscout.com` |
 | Fee | 25,000,000,000,000 wei (0.000025 ETH) |
-| Hash chain length | 500,000 |
+| Hash chain length | 1,000 (live v10 registration) |
 | defaultGasLimit | 200,000 |
 
 ### C. Hash Chain Parameters
@@ -460,7 +460,7 @@ contract MyGame is IEntropyConsumer {
 | Parameter | Value |
 |-----------|-------|
 | Algorithm | Keccak256 |
-| Chain length | 500,000 |
+| Chain length | 1,000 (live v10 registration) |
 | Commitment | `0x36b1ca65059e5ebfc4becfbda069308520384ca6a415c2930e1baf28e9e08a00` |
 | Sample interval | 1 (every hash stored) |
 
@@ -473,3 +473,20 @@ contract MyGame is IEntropyConsumer {
 ---
 
 *Dice Protocol is developed and maintained as independent infrastructure for Robinhood Chain. Architecture adapted from Pyth Entropy (Apache-2.0).*
+
+
+## Refunds (v10)
+
+If a request is not revealed within about 60–90 seconds, the original requester can reclaim the exact fee:
+
+```solidity
+// refundDelayBlocks = 6 on Robinhood Chain (L1 blocks ≈ 12s)
+dice.refundRequest(provider, sequenceNumber);
+```
+
+Notes:
+- Only the original requester can refund
+- Request must still be active (not revealed / settled)
+- Delay is L1-block based because Robinhood/Arbitrum Nitro uses L1 `block.number`
+- Live contract: `0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c`
+- Live fee: exact `0.000025 ETH`

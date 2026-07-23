@@ -35,7 +35,7 @@ The main contract handles:
 |----------|-----------|
 | Immutable (no proxy) | Maximum trust — logic can never change |
 | V2 API only | Simplified surface area, no legacy support |
-| Single fee model | 0.000055 ETH flat, no protocol/provider split |
+| Single fee model | 0.000025 ETH flat, no protocol/provider split |
 | Exclusive provider | Admin controls who can provide randomness |
 | 50k hash chain | ~500 days at 100 requests/day |
 | No blockhash in result | Simplifies verification, uses 2-party commit-reveal |
@@ -81,7 +81,7 @@ seed → Keccak256(seed) = h₁ → Keccak256(h₁) = h₂ → ... → h₅₀�
 
 Reveals happen in reverse: h₄₉₉₉₉ first, then h₄₉₉₉₈, etc. Each reveal hashes to the previous commitment, proving chain membership.
 
-Tyche stores every hash in the chain in memory (50,000 × 32 bytes = 1.6 MB) for O(1) lookup by sequence number.
+Tyche stores hash-chain samples/values in memory proportional to configured chain length for O(1) lookup by sequence number.
 
 ## Wallet Architecture
 

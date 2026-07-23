@@ -18,8 +18,8 @@
 | Chain ID | 4663 |
 | RPC URL | `https://rpc.mainnet.chain.robinhood.com` |
 | Block Explorer | `https://robinhoodchain.blockscout.com` |
-| Fee | 0.000055 ETH |
-| Hash Chain Length | 50,000 |
+| Fee | 0.000025 ETH |
+| Hash Chain Length | 1,000 (live v10 registration) |
 | defaultGasLimit | 200,000 |
 
 ## Verification
@@ -30,3 +30,20 @@ The contract is verified on Blockscout. You can view the source code at:
 ## Integration
 
 See the [Integration Guide](INTEGRATION.md) and [Developer Docs](developer-docs.md) for complete integration instructions.
+
+
+## Refunds (v10)
+
+If a request is not revealed within about 60–90 seconds, the original requester can reclaim the exact fee:
+
+```solidity
+// refundDelayBlocks = 6 on Robinhood Chain (L1 blocks ≈ 12s)
+dice.refundRequest(provider, sequenceNumber);
+```
+
+Notes:
+- Only the original requester can refund
+- Request must still be active (not revealed / settled)
+- Delay is L1-block based because Robinhood/Arbitrum Nitro uses L1 `block.number`
+- Live contract: `0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c`
+- Live fee: exact `0.000025 ETH`

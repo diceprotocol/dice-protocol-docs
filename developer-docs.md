@@ -1,6 +1,6 @@
 # Dice Protocol — Developer Documentation
 
-> **Contract:** [`0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0`](https://robinhoodchain.blockscout.com/address/0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0)
+> **Contract:** [`0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c`](https://robinhoodchain.blockscout.com/address/0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c)
 > **Chain:** Robinhood Chain Mainnet (Chain ID: 4663)
 > **Fee:** 0.000025 ETH per request
 > **Solidity:** ^0.8.24
@@ -976,7 +976,7 @@ import { DiceProtocol, ethers } from '@diceprotocol/sdk/sdk';
 // Initialize
 const dice = new DiceProtocol({
   rpcUrl: 'https://rpc.mainnet.chain.robinhood.com',
-  contractAddress: '0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0',
+  contractAddress: '0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c',
 });
 
 // Load wallet
@@ -1332,7 +1332,7 @@ The contract is deployed and verified on Robinhood Chain Mainnet:
 
 | Property | Value |
 |----------|-------|
-| Contract Address | `0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0` |
+| Contract Address | `0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c` |
 | Chain ID | 4663 |
 | RPC URL | `https://rpc.mainnet.chain.robinhood.com` |
 | Explorer | `https://robinhoodchain.blockscout.com` |
@@ -1342,7 +1342,7 @@ The contract is deployed and verified on Robinhood Chain Mainnet:
 | Vault | `0x918EAF0b2589710B0D85ef48C12a343E68263841` |
 | Admin | `0x4ACD2C88a239a924E47Fc4995114ca1Bb0CA3CaD` |
 | Default Provider | `0x8741b8a825644D9Ef18Faf2DAB5e9b47B900F2b6` |
-| Hash Chain Length | 50,000 values |
+| Hash Chain Length | 1,000 values currently registered on v10 (end sequence 1000); admin can register a longer chain later via registerFor |
 | Default Gas Limit | 100,000 |
 
 ### Deploying a New Instance
@@ -1379,7 +1379,7 @@ forge create DiceEntropy \
   --private-key $DEPLOYER_PRIVATE_KEY \
   --constructor-args \
     $ADMIN_ADDRESS \
-    55000000000000 \
+    25000000000000 \
     $PROVIDER_ADDRESS \
     true \
     $VAULT_ADDRESS \
@@ -1396,12 +1396,12 @@ forge create DiceEntropy \
 | Position | Name | Example Value |
 |----------|------|---------------|
 | 1 | `admin` | `0x4ACD...` |
-| 2 | `feeInWei` | `55000000000000` (0.000025 ETH) |
+| 2 | `feeInWei` | `25000000000000` (0.000025 ETH) |
 | 3 | `defaultProvider` | `0x8741...` |
 | 4 | `prefillRequestStorage` | `true` |
 | 5 | `vault` | `0x918E...` |
 | 6 | `providerCommitment` | `0x3ee6b22e...` (hash chain root x₀) |
-| 7 | `providerChainLength` | `50000` |
+| 7 | `providerChainLength` | `1000` (live v10; longer supported) |
 | 8 | `providerCommitmentMetadata` | `0x` (empty) |
 
 If `providerChainLength > 0`, the provider is auto-registered in the constructor — no separate `registerFor()` transaction needed.
@@ -1441,7 +1441,7 @@ The keeper monitors `Requested` events, looks up the corresponding hash chain va
 
 ```env
 # Contract
-DICE_ENTROPY_ADDRESS=0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0
+DICE_ENTROPY_ADDRESS=0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c
 RH_CHAIN_RPC_MAINNET=https://rpc.mainnet.chain.robinhood.com
 RH_CHAIN_WS_MAINNET=wss://ws.mainnet.chain.robinhood.com
 RH_CHAIN_CHAIN_ID=4663
@@ -1451,7 +1451,7 @@ KEEPER_PRIVATE_KEY=0x...
 PROVIDER_SECRET=<hash chain seed>
 
 # Fee
-DICE_FEE_WEI=55000000000000
+DICE_FEE_WEI=25000000000000
 DICE_VAULT_ADDRESS=0x918EAF0b2589710B0D85ef48C12a343E68263841
 ```
 
@@ -1463,8 +1463,8 @@ DICE_VAULT_ADDRESS=0x918EAF0b2589710B0D85ef48C12a343E68263841
 
 | Chain | Chain ID | Contract Address | Status |
 |-------|----------|-----------------|--------|
-| Robinhood Chain Mainnet | 4663 | `0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0` | ✅ Live |
-| Robinhood Chain Testnet | 46630 | `0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0` | ✅ Live |
+| Robinhood Chain Mainnet | 4663 | `0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c` | ✅ Live |
+| Robinhood Chain Testnet | 46630 | `0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c` | ✅ Live |
 
 ### Import Paths (Solidity)
 
@@ -1515,3 +1515,20 @@ Check provider health:
 Withdraw fees (admin):
   dice.withdrawFees(amount)
 ```
+
+
+## Refunds (v10)
+
+If a request is not revealed within about 60–90 seconds, the original requester can reclaim the exact fee:
+
+```solidity
+// refundDelayBlocks = 6 on Robinhood Chain (L1 blocks ≈ 12s)
+dice.refundRequest(provider, sequenceNumber);
+```
+
+Notes:
+- Only the original requester can refund
+- Request must still be active (not revealed / settled)
+- Delay is L1-block based because Robinhood/Arbitrum Nitro uses L1 `block.number`
+- Live contract: `0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c`
+- Live fee: exact `0.000025 ETH`

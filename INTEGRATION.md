@@ -74,7 +74,7 @@ const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
 const dice = new DiceProtocol({
   rpcUrl: 'https://rpc.mainnet.chain.robinhood.com',
-  contractAddress: '0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0',
+  contractAddress: '0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c',
 });
 
 // Get current fee
@@ -98,7 +98,7 @@ console.log('Request sequence:', seqNum);
 
 | Component | Address |
 |-----------|---------|
-| DiceEntropy Contract | `0x2Ad7fC99E3d8A8dA72802936Dd5145bF672206b0` |
+| DiceEntropy Contract | `0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c` |
 | Provider (Keeper) | `0x8741b8a825644D9Ef18Faf2DAB5e9b47B900F2b6` |
 | Admin | `0x4ACD2C88a239a924E47Fc4995114ca1Bb0CA3CaD` |
 | Vault (Fee Recipient) | `0x918EAF0b2589710B0D85ef48C12a343E68263841` |
@@ -169,3 +169,20 @@ The callback gas limit is capped at 100,000 to prevent griefing attacks. If your
 | Verifiability | On-chain Keccak256 | Varies |
 | Callback | Automatic | Manual polling |
 | Infrastructure | Self-hosted keeper | Third-party |
+
+
+## Refunds (v10)
+
+If a request is not revealed within about 60–90 seconds, the original requester can reclaim the exact fee:
+
+```solidity
+// refundDelayBlocks = 6 on Robinhood Chain (L1 blocks ≈ 12s)
+dice.refundRequest(provider, sequenceNumber);
+```
+
+Notes:
+- Only the original requester can refund
+- Request must still be active (not revealed / settled)
+- Delay is L1-block based because Robinhood/Arbitrum Nitro uses L1 `block.number`
+- Live contract: `0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c`
+- Live fee: exact `0.000025 ETH`
