@@ -2,9 +2,9 @@
 
 > **Contract:** [`0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c`](https://robinhoodchain.blockscout.com/address/0xd8a0680e7699526b57140ed4eafdcc7219dc0a0c)
 > **Chain:** Robinhood Chain Mainnet (Chain ID: 4663)
-> **Fee:** 0.000025 ETH per request
+> **Fee:** exact 0.000025 ETH per request (`msg.value` must equal fee)
 > **Solidity:** ^0.8.24
-> **License:** MIT
+> **License:** Apache-2.0
 
 ---
 
@@ -882,7 +882,7 @@ All errors are custom errors defined in `DiceErrors.sol`. They do not include st
 This is the standard pattern for smart contracts that need randomness. The consumer inherits `IEntropyConsumer`, requests randomness, and receives the result via callback.
 
 ```solidity
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
 import {IEntropyConsumer} from "@diceprotocol/sdk/sdk/IEntropyConsumer.sol";
@@ -908,15 +908,15 @@ contract MyGame is IEntropyConsumer {
         provider = _provider;
     }
 
-    /// @notice Request a random number. Caller must send ETH for the fee.
+    /// @notice Request a random number. Caller must send exact fee (no more, no less).
     function play(bytes32 userRandom) external payable returns (uint64 seq) {
-        // Get the required fee
-        uint128 fee = dice.getFee(provider);
-        require(msg.value >= fee, "Insufficient fee");
+        // Exact fee required: underpay and overpay both revert with InsufficientFee()
+        uint128 fee = dice.getFeeV2(provider, 100_000);
+        require(msg.value == fee, "Exact fee required");
 
         // Store context for the callback
         seq = dice.requestV2{value: fee}(provider, userRandom, 100_000);
-        pending[seq] = PendingRequest(msg.sender, msg.value - fee);
+        pending[seq] = PendingRequest(msg.sender, 0);
         requesters[seq] = msg.sender;
     }
 
@@ -1019,7 +1019,8 @@ If you're running a provider (keeper) service, you need to:
 1. **Generate a hash chain** off-chain and register it:
 ```typescript
 const seed = '0x' + crypto.randomBytes(32).toString('hex');
-const chain = DiceProtocol.generateHashChain(seed, 50_000);
+// Example length — live v10 uses 500_000
+const chain = DiceProtocol.generateHashChain(seed, 500_000);
 
 // Register (admin only — uses registerFor on-chain)
 // commitment = chain.commitment (x₀)
@@ -1271,7 +1272,7 @@ The test suite is in `contracts/test/`:
 ### Writing Your Own Tests
 
 ```solidity
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
@@ -1342,8 +1343,8 @@ The contract is deployed and verified on Robinhood Chain Mainnet:
 | Vault | `0x918EAF0b2589710B0D85ef48C12a343E68263841` |
 | Admin | `0x4ACD2C88a239a924E47Fc4995114ca1Bb0CA3CaD` |
 | Default Provider | `0x8741b8a825644D9Ef18Faf2DAB5e9b47B900F2b6` |
-| Hash Chain Length | 1,000 values currently registered on v10 (end sequence 1000); admin can register a longer chain later via registerFor |
-| Default Gas Limit | 100,000 |
+| Hash Chain Length | **500,000** values registered on live v10 (end sequence 500003); longer chains can be registered via `registerFor` |
+| Default Gas Limit | 200,000 |
 
 ### Deploying a New Instance
 
@@ -1363,7 +1364,8 @@ import { DiceProtocol } from '@diceprotocol/sdk/sdk';
 import crypto from 'crypto';
 
 const seed = '0x' + crypto.randomBytes(32).toString('hex');
-const chain = DiceProtocol.generateHashChain(seed, 50_000);
+// Example length — live v10 uses 500_000
+const chain = DiceProtocol.generateHashChain(seed, 500_000);
 
 console.log('Commitment (x₀):', chain.commitment);
 console.log('First reveal (x₁):', chain.revelations[0]);
@@ -1384,7 +1386,7 @@ forge create DiceEntropy \
     true \
     $VAULT_ADDRESS \
     $COMMITMENT_ROOT \
-    50000 \
+    500000 \
     0x \
   --verify \
   --verifier blockscout \
@@ -1401,7 +1403,7 @@ forge create DiceEntropy \
 | 4 | `prefillRequestStorage` | `true` |
 | 5 | `vault` | `0x918E...` |
 | 6 | `providerCommitment` | `0x3ee6b22e...` (hash chain root x₀) |
-| 7 | `providerChainLength` | `1000` (live v10; longer supported) |
+| 7 | `providerChainLength` | `500000` (live v10 registered length) |
 | 8 | `providerCommitmentMetadata` | `0x` (empty) |
 
 If `providerChainLength > 0`, the provider is auto-registered in the constructor — no separate `registerFor()` transaction needed.
